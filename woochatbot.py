@@ -13,11 +13,30 @@ driver.get("https://wootalk.today/key/%E6%88%90%E4%BA%BA%E6%A8%A1%E5%BC%8F")
 #driver.get("https://wootalk.today")
 driver.find_element_by_class_name('buttons').click()
 time.sleep(23) ##time for human verification. =D
-driver.refresh() 
+driver.refresh()	
+def sendMessage(text):
+	textBox = driver.find_element_by_id('messageInput')
+	textBox.send_keys(str(text).decode('utf-8'))
+	driver.find_element_by_id('sendButton').click()
+	return
+def keepChat():
+	if 'hi' in strangerText.text or 'Hi' in strangerText.text or '嗨' in strangerText.text or '好' in strangerText.text or '安' in strangerText.text:
+		sendMessage("嗨！")
+		#keepChat()
+	else:
+		sendMessage("到公海了嗎？")
+
+def leave():
+	driver.find_element_by_id('changeButton').click()
+	time.sleep(0.5)
+	##if the user left, the popup message won't be displayed###
+	try:
+		driver.find_element_by_id('popup-yes').click()
+	except:
+		pass
 def chatbot():##chatbot starts to do its job =)##
 	driver.find_element_by_class_name('buttons').click()
 	time.sleep(3)
-	textBox = driver.find_element_by_id('messageInput')
 	time.sleep(2)
 	strangerText = None
 	timeoff = 0
@@ -29,32 +48,30 @@ def chatbot():##chatbot starts to do its job =)##
 		except:
 			pass
 	##dealing with dead ends(people who are AFK)###
-	if timeoff > 5000:
-		driver.find_element_by_id('changeButton').click()
-		time.sleep(0.5)
-		try:
-			driver.find_element_by_id('popup-yes').click()
-		except:
-			pass
-		return
-	print strangerText.text.strip('陌生人：')
+	if timeoff > 5000: 
+		leave()
+	print strangerText.text[4:]
 	censoredWords = ['男', '女嗎', '色', '約', '18', '17', '壯', '性', '找', '女?', '愛', '尋']
 	for i in censoredWords:
-		if i in strangerText.text and 'hi' not in strangerText.text and 'Hi' not in strangerText.text and '嗨' not in strangerText.text and '好' not in strangerText.text:
-			textBox.send_keys("Please by polite. Say hi first!")
-			driver.find_element_by_id('sendButton').click()
+		if i in strangerText.text:
+			sendMessage("第一句話不會問好喔？幹喔！")
 			break
-	time.sleep(2.5)
-	textBox.send_keys("This is a chatbot developed by z.lee. Have a nice day!")
-	driver.find_element_by_id('sendButton').click()
+		else:
+			keepChat()
+			break
 	time.sleep(5)
-	driver.find_element_by_id('changeButton').click()
+	"""
+	sendMessage("掰掰！")
+	"""
 	time.sleep(0.5)
-	##if the user left, the popup message won't be displayer###
-	try:
-		driver.find_element_by_id('popup-yes').click()
-	except:
-		pass
-while True:
-	time.sleep(2)
-	chatbot()
+	leave()
+if __name__ == '__main__':
+	while True:
+		try:
+			checkLeave = driver.find_element_by_css_selector(".system.text")
+			if "對方離開" in checkLeave:
+				leave()
+				checkbot()
+		except:
+			time.sleep(2)
+			chatbot()
